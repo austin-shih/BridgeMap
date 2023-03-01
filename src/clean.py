@@ -158,6 +158,69 @@ def main(in_file, out_file):
 def modify_clean_values(df):
     # modifying values to make more sense 
 
+    # drop bridges from territories
+    indexState = df[(df['STATE_CODE'] == 60) | (df['STATE_CODE'] == 64) | (df['STATE_CODE'] == 66) | 
+                    (df['STATE_CODE'] == 68) | (df['STATE_CODE'] == 69) | (df['STATE_CODE'] == 70) |
+                    (df['STATE_CODE'] == 72) | (df['STATE_CODE'] == 74) | (df['STATE_CODE'] == 78)].index
+    df = df.drop(indexState)
+
+    # add two letter state code
+    df['state_code'] = df['STATE_CODE']
+
+    df['state_code'] = df['state_code'].replace({
+        1 : 'AL',
+        2 : 'AK',
+        4 : 'AZ',
+        5 : 'AR',
+        6 : 'CA',
+        8 : 'CO',
+        9 : 'CT',
+        10: 'DE',
+        11: 'DC',
+        12: 'FL',
+        13: 'GA',
+        15: 'HI',
+        16: 'ID',
+        17: 'IL',
+        18: 'IN',
+        19: 'IA',
+        20: 'KS',
+        21: 'KY',
+        22: 'LA',
+        23: 'ME',
+        24: 'MD',
+        25: 'MA',
+        26: 'MI',
+        27: 'MN',
+        28: 'MS',
+        29: 'MO',
+        30: 'MT',
+        31: 'NE',
+        32: 'NV',
+        33: 'NH',
+        34: 'NJ',
+        35: 'NM',
+        36: 'NY',
+        37: 'NC',
+        38: 'ND',
+        39: 'OH',
+        40: 'OK',
+        41: 'OR',
+        42: 'PA',
+        44: 'RI',
+        45: 'SC',
+        46: 'SD',
+        47: 'TN',
+        48: 'TX',
+        49: 'UT',
+        50: 'VT',
+        51: 'VA',
+        53: 'WA',
+        54: 'WV',
+        55: 'WI',
+        56: 'WY'
+    })
+
     # update state names
     df['STATE_CODE'] = df['STATE_CODE'].replace({
         1: 'Alabama',
@@ -210,16 +273,7 @@ def modify_clean_values(df):
         53: 'Washington',
         54: 'West Virginia',
         55: 'Wisconsin',
-        56: 'Wyoming',
-        60: 'American Samoa',
-        64: 'Federated States of Micronesia',
-        66: 'Guam',     
-        68: 'Marshall Islands',
-        69: 'Commonwealth of the Northern Mariana Islands',
-        70: 'Palau',
-        72: 'Puerto Rico',      
-        74: 'U.S. Minor Outlying Islands',
-        78: 'U.S. Virgin Islands'
+        56: 'Wyoming'
     }) 
 
     # update route type
@@ -375,12 +429,12 @@ def modify_clean_values(df):
     })
 
     # add verbose structural rating 
-    df['STRUCTURAL'] = df['STRUCTURAL'].replace({'*': '10'}) # change 'none' to number
+    df['STRUCTURAL'] = df['STRUCTURAL'].replace({'*': '-1'}) # change 'none' to number
     df['STRUCTURAL'] = pd.to_numeric(df['STRUCTURAL']) # make ratings numeric
     df['eval_rating_v'] = df['STRUCTURAL']
 
     df['eval_rating_v'] = df['eval_rating_v'].replace({
-        10: 'None',
+        -1: 'None',
         0: 'Failed',
         1: 'Imminent Failure',
         2: 'Critical',

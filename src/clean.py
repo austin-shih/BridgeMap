@@ -4,24 +4,35 @@
 """Cleans raw National Bridge Inventory Data and writes the output to a .csv file
 Usage: src/clean.py --in_file=<in_file> --out_file=<out_file>
 Options:
---in_file=<in_file>      Path (including filename) to raw data
+--in_file=<in_file>      Path to raw data folder
 --out_file=<out_file>    Path to directory where the processed data should be written
 """
 
-# python src/clean.py --in_file=data/raw/nbi_raw.csv --out_file=data/processed/nbi_clean.csv
+# python src/clean.py --in_file=data/raw --out_file=data/processed
 
 # Imports 
 from docopt import docopt
 import pandas as pd
+# import geopandas as gpd
 import os
 
 opt = docopt(__doc__)
 
 def main(in_file, out_file):
     
+    if os.path.exists(in_file) == False:
+        print('Results directory does not exist, exiting script')
+        exit()
+    
     # Import raw data
     print('import raw data...')
-    bridges = pd.read_csv(in_file)
+    bridges = pd.read_csv('data/raw/nbi_raw.csv')
+    # roads = gpd.read_file('data/raw/tl_2016_us_primaryroads/tl_2016_us_primaryroads.shp')
+
+    # clean roads geopandas df
+    print('clean geopandas file')
+    # roads = roads.query('RTTYP == "I" | RTTYP == "U" | RTTYP == "S"')
+
 
     # select relevant columns
     rel_cols = [#'X',
@@ -32,7 +43,7 @@ def main(in_file, out_file):
                 'LONGDD',     # longitude (converted) 17
                 'STATE_CODE', # state code 1
                 #'HIGHWAY_DI', # highway district 2
-                #'COUNTY_COD', # county code 3
+                'COUNTY_COD', # county code 3
                 #'PLACE_CODE', # place code 4
                 #'RECORD_TYP', # record type (route on or under structure) 5a
                 'ROUTE_PREF', # route prefix (type of highway/route) 5b
@@ -120,13 +131,18 @@ def main(in_file, out_file):
     # modifying values to make more sense 
     print('modifying values...')
     bridges = modify_clean_values(bridges)
+    # roads = modify_geo(roads)
 
     # rename columns for readability
     print('renaming columns...')
     bridges = bridges.rename(columns = {
                                         'LATDD':      'latitude', 
                                         'LONGDD':     'longitude',
-                                        'STATE_CODE': 'state',
+                                        'STATE_CODE': 'state_fips',
+                                        'state_name': 'state_name',
+                                        'state_abv': 'state_abv',
+                                        'COUNTY_COD': 'county_code',
+                                        'fips': 'fips',
                                         'ROUTE_PREF': 'route_type',
                                         'ROUTE_NUMB': 'route_num',
                                         'FEATURES_D': 'feature_intersect',
@@ -149,10 +165,23 @@ def main(in_file, out_file):
     # save processed data
     print('saving clean data...')
     try:
-        bridges.to_csv(out_file, index=False)
+        bridges.to_csv('data/processed/nbi_clean.csv', index=False)
+        # roads.to_file('data/processed/us_roads.shp')
     except:
         os.makedirs(os.path.dirname(out_file))
-        bridges.to_csv(out_file, index = False)
+        bridges.to_csv('data/processed/nbi_clean.csv', index=False)
+        # roads.to_file('data/processed/us_roads.shp')
+
+# modify geo df
+def modify_geo(df):
+    
+    df['RTTYP'] = df['RTTYP'].replace({
+        'I': 'Interstate highway',
+        'U': 'U.S. numbered highway',
+        'S': 'State highway'
+    })
+
+    return df
 
 # modify value function
 def modify_clean_values(df):
@@ -165,9 +194,8 @@ def modify_clean_values(df):
     df = df.drop(indexState)
 
     # add two letter state code
-    df['state_code'] = df['STATE_CODE']
-
-    df['state_code'] = df['state_code'].replace({
+    df['state_abv'] = df['STATE_CODE']
+    df['state_abv'] = df['state_abv'].replace({
         1 : 'AL',
         2 : 'AK',
         4 : 'AZ',
@@ -222,7 +250,7 @@ def modify_clean_values(df):
     })
 
     # update state names
-    df['STATE_CODE'] = df['STATE_CODE'].replace({
+    df['state_name'] = df['STATE_CODE'].replace({
         1: 'Alabama',
         2: 'Alaska',
         4: 'Arizona',
@@ -275,6 +303,14 @@ def modify_clean_values(df):
         55: 'Wisconsin',
         56: 'Wyoming'
     }) 
+
+    # create full FIPS
+    df['COUNTY_COD'] = df['COUNTY_COD'].map(str)
+    df['COUNTY_COD'] = df['COUNTY_COD'].str.zfill(3)
+    df['STATE_CODE'] = df['STATE_CODE'].map(str)
+    df['STATE_CODE'] = df['STATE_CODE'].str.zfill(2)
+    df['fips'] = df['STATE_CODE'] + df['COUNTY_COD']
+
 
     # update route type
     df['ROUTE_PREF'] = df['ROUTE_PREF'].replace({

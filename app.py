@@ -12,6 +12,10 @@ import json
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
     counties = json.load(response)
 
+# 1. add in route names (.lstrip to get rid of leading 0, then string concat with route)
+# 6. add more info
+# 7. add explanations at bottom of page
+
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
 # import bridge dataframe
@@ -19,81 +23,185 @@ df = pd.read_csv('data/processed/nbi_clean.csv')
 # change county FIPS to string and pad string
 df['fips'] = df['fips'].map(str)
 df['fips'] = df['fips'].str.zfill(5)
-state = np.append(df['state_name'].unique(), 'All')          # initial state options
-route = np.append(df['route_type'].unique(), 'All')     # inital route options
+state = np.append(df['state_name'].unique(), 'All')             # initial state options
+route = np.append(df['route_type'].unique(), 'All')             # initial route options
+bridge_type = np.append(df['bridge_type'].unique(), 'All')      # initial bridge type options
+bridge_mat = np.append(df['bridge_material'].unique(), 'All')   # initial bridge material options
 
+# function to update length slide to log scale
+def transform_value(value):
+    if value == 0:
+        val_tran = 0
+    else:
+        val_tran = 10**value
+    return val_tran
 
 app.layout = dbc.Container([
     html.H1("US Highway Bridge Map", style={'textAlign': 'start'}),
+    html.P("Dashboard to Visualize US Interstate, Numbered, and State highway bridges from the National Bridge Inventory Database", 
+           style={'textAlign': 'start'}),
     dcc.Tabs([
         dcc.Tab(label='Heatmap', children=[
-            dbc.Row(
-                dbc.Col([html.H4("Heatmap Bridge Evaluation by County", style={'textAlign': 'start'}),
-                html.P("Dashboard to Visualize US Interstate, Numbered, and State highway bridges", 
-                        style={'textAlign': 'start'})
-                ], width=12)
-            ),
             dbc.Row([
                 dbc.Col([
+                    # count of bridges from filter
+                    html.Br(),
+                    html.Div(id='bridge_count1'),
+                    # dropdown for states
+                    html.Br(),
                     html.Label('State'),
                     dcc.Dropdown(state, 'All', id='state_sel1'),
-
+                    # dropdown for highway type
                     html.Br(),
                     html.Label('Highway'),
                     dcc.Dropdown(route, 'All', id='highway_sel1'),
+                    # dropdown for bridge type
+                    html.Br(),
+                    html.Label('Bridge Type'),
+                    dcc.Dropdown(bridge_type, 'All', id='type_sel1'),
+                    # slider for bridge length
+                    html.Br(),
+                    html.Label('Bridge length (m)'),
+                    dcc.RangeSlider(0, 5,
+                                    id='length_slider1',
+                                    marks={i: '{}'.format(transform_value(i)) for i in range(6)},
+                                    value=[0, 5],
+                                    dots=False,
+                                    step=0.01,
+                                    allowCross=False),
+                    html.Div(id='bridge_length1',  style={'font-size': 10}),
+                    # slider for number of spans
+                    html.Br(),
+                    html.Label('Number of Spans'),
+                    dcc.RangeSlider(0, 3,
+                                    id='span_slider1',
+                                    marks={i: '{}'.format(transform_value(i)) for i in range(4)},
+                                    value=[0, 3],
+                                    dots=False,
+                                    step=0.01,
+                                    allowCross=False),
+                    html.Div(id='num_span1', style={'font-size': 10}),
+                    # slider for evaluation rating
+                    html.Br(),
+                    html.Label('Evaluation Rating'),
+                    dcc.RangeSlider(-1, 9, 1, value=[-1, 9], id='eval_slider1', allowCross=False),
+                    html.Div('* -1 for bridges without rating', style={'font-size': 10})
 
                 ], width=3, style={"height": "100%"}),
                 dbc.Col([
-                    dcc.Graph(id='us_map_heatmap', figure={})
-                ], width=9, style={"height": "100%"})  
+                    html.Br(),
+                    html.H4('Mean Highway Bridge Evaluation Rating by County', style={'textAlign': 'start'}),
+                    dcc.Graph(id='us_map_heatmap', figure={}, style={'height':'70vh'}),
+                    html.Div('Data accessed January 13, 2023. Latest version can be found below:', style={'font-size': 12}),
+                    dcc.Link(html.A('USDOT BTS'), id='data_link1',  href="https://geodata.bts.gov/datasets/national-bridge-inventory/about", style={'font-size': 12})
+                ], width=9, style={"height": "80%"})  
             ], className="h-75")
         ]),
 
         dcc.Tab(label='Scatterplot', children=[
-            dbc.Row(
-                dbc.Col([html.H4("Scatterplot", style={'textAlign': 'start'}),
-                html.P("Dashboard to Visualize US Interstate, Numbered, and State highway bridges", 
-                        style={'textAlign': 'start'})
-                ], width=12)
-            ),
             dbc.Row([
                 dbc.Col([
+                    # count of bridges from filter
+                    html.Br(),
+                    html.Div(id='bridge_count2'),
+                    # dropdown for states
+                    html.Br(),
                     html.Label('State'),
                     dcc.Dropdown(state, 'All', id='state_sel2'),
-
+                    # dropdown for highway type
                     html.Br(),
                     html.Label('Highway'),
                     dcc.Dropdown(route, 'All', id='highway_sel2'),
+                    # dropdown for bridge type
+                    html.Br(),
+                    html.Label('Bridge Type'),
+                    dcc.Dropdown(bridge_type, 'All', id='type_sel2'),
 
-                ], width=3, style={"height": "100%"}),
+                    # slider for bridge length
+                    html.Br(),
+                    html.Label('Bridge length (m)'),
+                    dcc.RangeSlider(0, 5,
+                                    id='length_slider2',
+                                    marks={i: '{}'.format(transform_value(i)) for i in range(6)},
+                                    value=[0, 5],
+                                    dots=False,
+                                    step=0.01,
+                                    allowCross=False),
+                    html.Div(id='bridge_length2',  style={'font-size': 10}),
+                    # slider for number of spans
+                    html.Br(),
+                    html.Label('Number of Spans'),
+                    dcc.RangeSlider(0, 3,
+                                    id='span_slider2',
+                                    marks={i: '{}'.format(transform_value(i)) for i in range(4)},
+                                    value=[0, 3],
+                                    dots=False,
+                                    step=0.01,
+                                    allowCross=False),
+                    html.Div(id='num_span2', style={'font-size': 10}),
+                    # slider for evaluation rating
+                    html.Br(),
+                    html.Label('Evaluation Rating'),
+                    dcc.RangeSlider(-1, 9, 1, value=[-1, 9], id='eval_slider2', allowCross=False),
+                    html.Div('* -1 for bridges without rating', style={'font-size': 10})
+
+                ], width=3, style={"height": "100%"}),   
                 dbc.Col([
-                    dcc.Graph(id='us_map_scatter', figure={})
+                    html.Br(),
+                    html.H4("Highway Bridges Scatterplot (bubble size by length)", style={'textAlign': 'start'}),
+                    dcc.Graph(id='us_map_scatter', figure={}, style={'height':'70vh'}),
+                    html.Div('Data accessed January 13, 2023. Latest version can be found below:', style={'font-size': 12}),
+                    dcc.Link(html.A('USDOT BTS'), id='data_link2',  href="https://geodata.bts.gov/datasets/national-bridge-inventory/about", style={'font-size': 12})
                 ], width=9, style={"height": "100%"})  
             ], className="h-75")
-        ])#, style={"height": "100vh"})
+        ])
     ])
 ])
 
 @app.callback(
     Output('us_map_heatmap', 'figure'),
+    Output('bridge_count1', 'children'),
+    Output('bridge_length1', 'children'),
+    Output('num_span1', 'children'),
     Input('state_sel1', 'value'),
-    Input('highway_sel1', 'value')
+    Input('highway_sel1', 'value'),
+    Input('type_sel1', 'value'),
+    Input('length_slider1', 'value'),
+    Input('span_slider1', 'value'),
+    Input('eval_slider1', 'value')
 )
-def update_map(state, route):
-    # filter dataframe
+def update_heatmap(state, route, b_type, length_range, span_num, eval):
     dff = df
 
     # df with state lat long centres
     df_state_cen = dff.loc[:,('state_name', 'longitude', 'latitude')]
     df_state_cen = df_state_cen.groupby(['state_name'], as_index=False).mean()
 
+    # update length range
+    transformed_value_len = [transform_value(v) for v in length_range]
+    low_len = transformed_value_len[0]
+    high_len = transformed_value_len[1]
+
+    # update span range
+    transformed_value_span = [transform_value(v) for v in span_num]
+    low_span = transformed_value_span[0]
+    high_span = transformed_value_span[1]
+
+    # update eval rating
+    low_eval = eval[0]
+    high_eval = eval[1]
+
+    # filter dataframe
     if state != 'All':
         dff = df[df['state_name']== state]
         df_state_cen = df_state_cen[df_state_cen['state_name']==state]
-        if route != 'All':
-            dff = dff[dff['route_type'] == route]
-    elif route != 'All':
+    if route != 'All':
         dff = dff[dff['route_type'] == route]
+    if b_type != 'All':
+        dff = dff[dff['bridge_type'] == b_type]
+    dff = dff.query('bridge_length >= @low_len & bridge_length <= @high_len')
+    dff = dff.query('num_span >= @low_span & num_span <= @high_span')
+    dff = dff.query('eval_rating >= @low_eval & eval_rating <= @high_eval')
 
     # summary df
     df_sum = dff.drop(dff[(dff['eval_rating'] == -1)].index)
@@ -117,18 +225,16 @@ def update_map(state, route):
                                 locations='fips', 
                                 color='eval_rating',
                                 color_continuous_scale="RdBu",
-                                range_color=(4, 9),
+                                range_color=(0, 9),
                                 mapbox_style="carto-positron",
                                 zoom=zoom, 
                                 center = centre,
                                 hover_name='fips',
-                                hover_data=['eval_rating', 'count'],
-                                height = 600
-                                #labels={'unemp':'unemployment rate'}
+                                hover_data=['state_name', 'eval_rating', 'count'],
+                                height = 700
     )
 
     fig.update_layout(
-        title_text = 'Mean Highway Bridge Evaluation Rating',
         coloraxis_colorbar=dict(title="Bridge Evaluation Rate", 
                                 thicknessmode="pixels", 
                                 lenmode="pixels", 
@@ -144,14 +250,22 @@ def update_map(state, route):
         margin={"r":0,"t":60,"l":0,"b":0}
     )
 
-    return fig
+    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Selected span range: [{:0.2f}, {:0.2f}]'.format(low_span, high_span)
+
 
 @app.callback(
     Output('us_map_scatter', 'figure'),
+    Output('bridge_count2', 'children'),
+    Output('bridge_length2', 'children'),
+    Output('num_span2', 'children'),
     Input('state_sel2', 'value'),
-    Input('highway_sel2', 'value')
+    Input('highway_sel2', 'value'),
+    Input('type_sel2', 'value'),
+    Input('length_slider2', 'value'),
+    Input('span_slider2', 'value'),
+    Input('eval_slider2', 'value')
 )
-def update_map(state, route):
+def update_scattermap(state, route, b_type, length_range, span_num, eval):
     # filter dataframe
     dff = df
 
@@ -159,14 +273,31 @@ def update_map(state, route):
     df_state_cen = dff.loc[:,('state_name', 'longitude', 'latitude')]
     df_state_cen = df_state_cen.groupby(['state_name'], as_index=False).mean()
 
-    # dff_geo = df_geo
+    # update length range
+    transformed_value_len = [transform_value(v) for v in length_range]
+    low_len = transformed_value_len[0]
+    high_len = transformed_value_len[1]
+
+    # update span range
+    transformed_value_span = [transform_value(v) for v in span_num]
+    low_span = transformed_value_span[0]
+    high_span = transformed_value_span[1]
+
+    # update eval rating
+    low_eval = eval[0]
+    high_eval = eval[1]
+
+    # filter dataframe
     if state != 'All':
         dff = df[df['state_name']== state]
         df_state_cen = df_state_cen[df_state_cen['state_name']==state]
-        if route != 'All':
-            dff = dff[dff['route_type'] == route]
-    elif route != 'All':
+    if route != 'All':
         dff = dff[dff['route_type'] == route]
+    if b_type != 'All':
+        dff = dff[dff['bridge_type'] == b_type]
+    dff = dff.query('bridge_length >= @low_len & bridge_length <= @high_len')
+    dff = dff.query('num_span >= @low_span & num_span <= @high_span')
+    dff = dff.query('eval_rating >= @low_eval & eval_rating <= @high_eval')
 
     # summary df
     df_sum = dff.drop(dff[(dff['eval_rating'] == -1)].index)
@@ -188,32 +319,34 @@ def update_map(state, route):
     # scatter plot
     fig = px.scatter_mapbox(dff, 
                             lat='latitude', lon='longitude', 
-                            hover_name="feature_intersect", 
-                            hover_data=['eval_rating', 
-                                        "eval_rating_v", 
-                                        "bridge_material", 
-                                        "bridge_type",
-                                        'appr_material',
-                                        'appr_type',
-                                        'num_span',
-                                        'num_appr',
-                                        'max_span',
-                                        'bridge_length',
-                                        'bridge_width'],
-                            color='eval_rating',
                             size=dff['bridge_length']*50,
                             size_max=30,
+                            hover_name="feature_intersect", 
+                            hover_data={'eval_rating':':.3f', 
+                                        "eval_rating_v": True,
+                                        'deck_condition': True,
+                                        'superstructure_condition':True,
+                                        'substructure_condition': True, 
+                                        "bridge_material": True, 
+                                        "bridge_type": True,
+                                        'appr_material': True,
+                                        'appr_type': True,
+                                        'num_span': True,
+                                        'num_appr': True,
+                                        'max_span': True,
+                                        'bridge_length': True,
+                                        'bridge_width': True},
+                            color='eval_rating',
                             range_color = [0, 9],
                             color_continuous_scale="rdbu", 
                             opacity=1,
                             zoom=zoom,
-                            height=800,
+                            height=700,
                             mapbox_style="open-street-map"
     )
 
     fig.update_layout(
         mapbox_style="open-street-map",
-        title_text = 'Highway Bridges by State',
         coloraxis_colorbar=dict(title="Bridge Evaluation Rate", 
                                 thicknessmode="pixels", 
                                 lenmode="pixels", 
@@ -229,7 +362,7 @@ def update_map(state, route):
         margin={"r":0,"t":50,"l":0,"b":0}
     )
 
-    return fig
+    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Selected span range: [{:0.2f}, {:0.2f}]'.format(low_span, high_span)
 
 if __name__ == '__main__':
     app.run_server(debug=True)

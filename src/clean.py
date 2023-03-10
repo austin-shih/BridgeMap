@@ -92,9 +92,9 @@ def main(in_file, out_file):
                 #'LAT_UND_RE', # min lateral underclearance on right, ref. feature 55a
                 #'LAT_UND_MT', # min lateral underclearance on right, from feature 55b
                 #'LEFT_LAT_U', # min lateral underclearace on left, from feature 56
-                #'DECK_COND_', # deck condition 68
-                #'SUPERSTRUC', # superstructure condition 59
-                #'SUBSTRUCTU', # substructure condition 60
+                'DECK_COND_', # deck condition 68
+                'SUPERSTRUC', # superstructure condition 59
+                'SUBSTRUCTU', # substructure condition 60
                 #'CHANNEL_CO', # channel condition
                 #'CULVERT_CO', # culvert condition
                 'STRUCTURAL'] # structural evaluation 67
@@ -158,7 +158,10 @@ def main(in_file, out_file):
                                         'MAX_SPAN_L': 'max_span',
                                         'STRUCTUR_4': 'bridge_length',
                                         'DECK_WIDTH': 'bridge_width',
-                                        'STRUCTURAL': 'eval_rating'
+                                        'STRUCTURAL': 'eval_rating',
+                                        'DECK_COND_': 'deck_condition',
+                                        'SUPERSTRUC': 'superstructure_condition',
+                                        'SUBSTRUCTU': 'substructure_condition'
                                         }
                             )
 
@@ -324,7 +327,10 @@ def modify_clean_values(df):
         8: 'Other'
     })
 
-    # # update route type
+    # add bridge deck area
+    df['deck_area'] = df.STRUCTUR_4 * df.DECK_WIDTH
+
+    # # update route service level
     # df['SERVICE_LE'] = df['SERVICE_LE'].replace({
     #     0: 'None',
     #     1: 'Mainline',
@@ -470,6 +476,53 @@ def modify_clean_values(df):
     df['eval_rating_v'] = df['STRUCTURAL']
 
     df['eval_rating_v'] = df['eval_rating_v'].replace({
+        -1: 'None',
+        0: 'Failed',
+        1: 'Imminent Failure',
+        2: 'Critical',
+        3: 'Serious',
+        4: 'Poor',
+        5: 'Fair',
+        6: 'Satisfactory',
+        7: 'Good',
+        8: 'Very Good',
+        9: 'Excellent'
+    })
+
+    # change condition rating to verbose
+    df['DECK_COND_'] = df['DECK_COND_'].replace({'N': '-1'}) # change 'none' to number
+    df['DECK_COND_'] = pd.to_numeric(df['DECK_COND_']) # make ratings numeric
+    df['DECK_COND_'] = df['DECK_COND_'].replace({
+        -1: 'None',
+        0: 'Failed',
+        1: 'Imminent Failure',
+        2: 'Critical',
+        3: 'Serious',
+        4: 'Poor',
+        5: 'Fair',
+        6: 'Satisfactory',
+        7: 'Good',
+        8: 'Very Good',
+        9: 'Excellent'
+    })
+    df['SUPERSTRUC'] = df['SUPERSTRUC'].replace({'N': '-1'}) # change 'none' to number
+    df['SUPERSTRUC'] = pd.to_numeric(df['SUPERSTRUC']) # make ratings numeric
+    df['SUPERSTRUC'] = df['SUPERSTRUC'].replace({
+        -1: 'None',
+        0: 'Failed',
+        1: 'Imminent Failure',
+        2: 'Critical',
+        3: 'Serious',
+        4: 'Poor',
+        5: 'Fair',
+        6: 'Satisfactory',
+        7: 'Good',
+        8: 'Very Good',
+        9: 'Excellent'
+    })
+    df['SUBSTRUCTU'] = df['SUBSTRUCTU'].replace({'N': '-1'}) # change 'none' to number
+    df['SUBSTRUCTU'] = pd.to_numeric(df['SUBSTRUCTU']) # make ratings numeric
+    df['SUBSTRUCTU'] = df['SUBSTRUCTU'].replace({
         -1: 'None',
         0: 'Failed',
         1: 'Imminent Failure',

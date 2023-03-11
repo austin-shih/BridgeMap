@@ -29,8 +29,8 @@ def main(in_file, out_file):
     bridges = pd.read_csv('data/raw/nbi_raw.csv')
     # roads = gpd.read_file('data/raw/tl_2016_us_primaryroads/tl_2016_us_primaryroads.shp')
 
-    # clean roads geopandas df
-    print('clean geopandas file')
+    # # clean roads geopandas df
+    # print('clean geopandas file')
     # roads = roads.query('RTTYP == "I" | RTTYP == "U" | RTTYP == "S"')
 
 
@@ -175,16 +175,16 @@ def main(in_file, out_file):
         bridges.to_csv('data/processed/nbi_clean.csv', index=False)
         # roads.to_file('data/processed/us_roads.shp')
 
-# modify geo df
-def modify_geo(df):
+# # modify geo df
+# def modify_geo(df):
     
-    df['RTTYP'] = df['RTTYP'].replace({
-        'I': 'Interstate highway',
-        'U': 'U.S. numbered highway',
-        'S': 'State highway'
-    })
+#     df['RTTYP'] = df['RTTYP'].replace({
+#         'I': 'Interstate highway',
+#         'U': 'U.S. numbered highway',
+#         'S': 'State highway'
+#     })
 
-    return df
+#     return df
 
 # modify value function
 def modify_clean_values(df):
@@ -314,6 +314,17 @@ def modify_clean_values(df):
     df['STATE_CODE'] = df['STATE_CODE'].str.zfill(2)
     df['fips'] = df['STATE_CODE'] + df['COUNTY_COD']
 
+    # create full route number
+    df['ROUTE_NUMB'] = df['ROUTE_NUMB'].map(str)
+    df['ROUTE_NUMB'] = df['ROUTE_NUMB'].str.lstrip('0')
+    # define condition
+    mask1 = (df['ROUTE_PREF'] == 1)
+    mask2 = (df['ROUTE_PREF'] == 2)
+    mask3 = (df['ROUTE_PREF'] == 3)
+    # add appropriate hwy prefix 
+    df.loc[mask1, 'ROUTE_NUMB'] = 'I- ' + df['ROUTE_NUMB'].astype(str)
+    df.loc[mask2, 'ROUTE_NUMB'] = 'US Hwy ' + df['ROUTE_NUMB'].astype(str)
+    df.loc[mask3, 'ROUTE_NUMB'] = 'State Rte/Hwy ' + df['ROUTE_NUMB'].astype(str)
 
     # update route type
     df['ROUTE_PREF'] = df['ROUTE_PREF'].replace({

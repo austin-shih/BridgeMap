@@ -25,6 +25,7 @@ df['fips'] = df['fips'].map(str)
 df['fips'] = df['fips'].str.zfill(5)
 state = np.append(df['state_name'].unique(), 'All')             # initial state options
 route = np.append(df['route_type'].unique(), 'All')             # initial route options
+route_num = np.append(df['route_num'].unique(), 'All')          # initial route number options
 bridge_type = np.append(df['bridge_type'].unique(), 'All')      # initial bridge type options
 bridge_mat = np.append(df['bridge_material'].unique(), 'All')   # initial bridge material options
 
@@ -47,18 +48,23 @@ app.layout = dbc.Container([
                     # count of bridges from filter
                     html.Br(),
                     html.Div(id='bridge_count1'),
+                    html.Div(id='eval_avg1'),
                     # dropdown for states
                     html.Br(),
                     html.Label('State'),
-                    dcc.Dropdown(state, 'All', id='state_sel1'),
+                    dcc.Dropdown(state, 'All', id='state_sel1', clearable=False),
                     # dropdown for highway type
                     html.Br(),
                     html.Label('Highway'),
-                    dcc.Dropdown(route, 'All', id='highway_sel1'),
+                    dcc.Dropdown(route, 'All', id='highway_sel1', clearable=False),
+                    # dropdown for highway number
+                    html.Br(),
+                    html.Label('Highway Number'),
+                    dcc.Dropdown(route_num, 'All', id='hwy_num1'),
                     # dropdown for bridge type
                     html.Br(),
                     html.Label('Bridge Type'),
-                    dcc.Dropdown(bridge_type, 'All', id='type_sel1'),
+                    dcc.Dropdown(bridge_type, 'All', id='type_sel1', clearable=False),
                     # slider for bridge length
                     html.Br(),
                     html.Label('Bridge length (m)'),
@@ -104,18 +110,23 @@ app.layout = dbc.Container([
                     # count of bridges from filter
                     html.Br(),
                     html.Div(id='bridge_count2'),
+                    html.Div(id='eval_avg2'),
                     # dropdown for states
                     html.Br(),
                     html.Label('State'),
-                    dcc.Dropdown(state, 'All', id='state_sel2'),
+                    dcc.Dropdown(state, 'All', id='state_sel2', clearable=False),
                     # dropdown for highway type
                     html.Br(),
                     html.Label('Highway'),
-                    dcc.Dropdown(route, 'All', id='highway_sel2'),
+                    dcc.Dropdown(route, 'All', id='highway_sel2', clearable=False),
+                    # dropdown for highway number
+                    html.Br(),
+                    html.Label('Highway Number'),
+                    dcc.Dropdown(route_num, 'All', id='hwy_num2'),
                     # dropdown for bridge type
                     html.Br(),
                     html.Label('Bridge Type'),
-                    dcc.Dropdown(bridge_type, 'All', id='type_sel2'),
+                    dcc.Dropdown(bridge_type, 'All', id='type_sel2', clearable=False),
 
                     # slider for bridge length
                     html.Br(),
@@ -163,14 +174,17 @@ app.layout = dbc.Container([
     Output('bridge_count1', 'children'),
     Output('bridge_length1', 'children'),
     Output('num_span1', 'children'),
+    Output('eval_avg1', 'children'),
+    Output('hwy_num1', 'options'),
     Input('state_sel1', 'value'),
     Input('highway_sel1', 'value'),
     Input('type_sel1', 'value'),
     Input('length_slider1', 'value'),
     Input('span_slider1', 'value'),
-    Input('eval_slider1', 'value')
+    Input('eval_slider1', 'value'),
+    Input('hwy_num1', 'value')
 )
-def update_heatmap(state, route, b_type, length_range, span_num, eval):
+def update_heatmap(state, route, b_type, length_range, span_num, eval, hwy_num):
     dff = df
 
     # df with state lat long centres
@@ -192,7 +206,7 @@ def update_heatmap(state, route, b_type, length_range, span_num, eval):
     high_eval = eval[1]
 
     # filter dataframe
-    if state != 'All':
+    if state != 'All' and state != 'None':
         dff = df[df['state_name']== state]
         df_state_cen = df_state_cen[df_state_cen['state_name']==state]
     if route != 'All':
@@ -203,11 +217,19 @@ def update_heatmap(state, route, b_type, length_range, span_num, eval):
     dff = dff.query('num_span >= @low_span & num_span <= @high_span')
     dff = dff.query('eval_rating >= @low_eval & eval_rating <= @high_eval')
 
+    # update route number dropdown
+    route_list = np.append(dff['route_num'].unique(), 'All')
+    if hwy_num == 'None':
+        pass
+    if hwy_num != 'All':
+        dff = dff[dff['route_num'] == hwy_num]
+    
     # summary df
     df_sum = dff.drop(dff[(dff['eval_rating'] == -1)].index)
     df_sum = df_sum.loc[:, ('fips', 'state_abv', 'state_name', 'eval_rating', 'latitude', 'longitude')]
     df_sum = df_sum.groupby(['fips', 'state_abv', 'state_name'], as_index=False).mean()
     df_sum['count'] = dff.loc[:,('fips', 'eval_rating')].groupby('fips', as_index=False).count().iloc[:,1].tolist()
+    avg_total = df_sum['eval_rating'].mean()
 
     if state == 'All':
         lat = 38
@@ -231,7 +253,7 @@ def update_heatmap(state, route, b_type, length_range, span_num, eval):
                                 center = centre,
                                 hover_name='fips',
                                 hover_data=['state_name', 'eval_rating', 'count'],
-                                height = 700
+                                height = 600
     )
 
     fig.update_layout(
@@ -250,7 +272,7 @@ def update_heatmap(state, route, b_type, length_range, span_num, eval):
         margin={"r":0,"t":60,"l":0,"b":0}
     )
 
-    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Selected span range: [{:0.2f}, {:0.2f}]'.format(low_span, high_span)
+    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Selected span range: [{:0.2f}, {:0.2f}]'.format(low_span, high_span), 'Mean evaluation rating: {:0.2f}'.format(avg_total), route_list
 
 
 @app.callback(
@@ -258,14 +280,17 @@ def update_heatmap(state, route, b_type, length_range, span_num, eval):
     Output('bridge_count2', 'children'),
     Output('bridge_length2', 'children'),
     Output('num_span2', 'children'),
+    Output('eval_avg2', 'children'),
+    Output('hwy_num2', 'options'),
     Input('state_sel2', 'value'),
     Input('highway_sel2', 'value'),
     Input('type_sel2', 'value'),
     Input('length_slider2', 'value'),
     Input('span_slider2', 'value'),
-    Input('eval_slider2', 'value')
+    Input('eval_slider2', 'value'),
+    Input('hwy_num2', 'value')
 )
-def update_scattermap(state, route, b_type, length_range, span_num, eval):
+def update_scattermap(state, route, b_type, length_range, span_num, eval, hwy_num):
     # filter dataframe
     dff = df
 
@@ -299,14 +324,22 @@ def update_scattermap(state, route, b_type, length_range, span_num, eval):
     dff = dff.query('num_span >= @low_span & num_span <= @high_span')
     dff = dff.query('eval_rating >= @low_eval & eval_rating <= @high_eval')
 
+    # update route number dropdown
+    route_list = np.append(dff['route_num'].unique(), 'All')
+    if hwy_num == 'None':
+        pass
+    if hwy_num != 'All':
+        dff = dff[dff['route_num'] == hwy_num]
+
     # summary df
     df_sum = dff.drop(dff[(dff['eval_rating'] == -1)].index)
     df_sum = df_sum.loc[:, ('fips', 'state_abv', 'state_name', 'eval_rating', 'latitude', 'longitude')]
     df_sum = df_sum.groupby(['fips', 'state_abv', 'state_name'], as_index=False).mean()
     df_sum['count'] = dff.loc[:,('fips', 'eval_rating')].groupby('fips', as_index=False).count().iloc[:,1].tolist()
+    avg_total = df_sum['eval_rating'].mean()
 
     if state == 'All':
-        lat = 38
+        lat = 38 
         long = -95.7129
         centre = {"lat": lat, "lon": long}
         zoom = 3
@@ -341,7 +374,7 @@ def update_scattermap(state, route, b_type, length_range, span_num, eval):
                             color_continuous_scale="rdbu", 
                             opacity=1,
                             zoom=zoom,
-                            height=700,
+                            height=600,
                             mapbox_style="open-street-map"
     )
 
@@ -362,7 +395,7 @@ def update_scattermap(state, route, b_type, length_range, span_num, eval):
         margin={"r":0,"t":50,"l":0,"b":0}
     )
 
-    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Selected span range: [{:0.2f}, {:0.2f}]'.format(low_span, high_span)
+    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Selected span range: [{:0.2f}, {:0.2f}]'.format(low_span, high_span), 'Mean evaluation rating: {:0.2f}'.format(avg_total), route_list
 
 if __name__ == '__main__':
     app.run_server(debug=True)

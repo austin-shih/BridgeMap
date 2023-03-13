@@ -1,20 +1,18 @@
 from dash import Dash, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 import plotly.express as px
-import plotly.graph_objects as go
-import plotly.figure_factory as ff
 import pandas as pd
 import numpy as np
-#import shapely.geometry
 from urllib.request import urlopen
 import json
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
     counties = json.load(response)
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
+server = app.server 
 
 # import bridge dataframe
-df = pd.read_csv('data/processed/nbi_clean.csv')
+df = pd.read_csv('../data/processed/nbi_clean.csv')
 # change county FIPS to string and pad string
 df['fips'] = df['fips'].map(str)
 df['fips'] = df['fips'].str.zfill(5)

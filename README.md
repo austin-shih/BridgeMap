@@ -40,7 +40,7 @@ Below are the steps to setup the development environment for BridgeMap:
 3. Create conda environment and activate it
     ``` console
     conda env create -f bridgemap.yaml
-    conda bridgemap
+    conda activate bridgemap
     ```
 
 4. The `app.py` scipt contains the dashboard scripts in `plotly dash`.

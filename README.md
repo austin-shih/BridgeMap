@@ -11,7 +11,7 @@ A similar dashboard maintained by the Bureau of Transportation Statistics can be
 
 ## Dashboard Functionality 
 
-This dashboard contains two tabs, a heatmap showing the mean evaluation rating by county, and a scatterplot of bridges with bubble sizes indicating the length of the structure.
+This dashboard contains two tabs, a heatmap showing the mean evaluation rating by county, and a scatterplot of bridges with bubble sizes indicating the length of the structure. The live app can be accessed [here](https://bridgemap.onrender.com)
 
 ### Heatmap 
 ![](img/heatmap1.png)

@@ -5,16 +5,11 @@ import plotly.graph_objects as go
 import plotly.figure_factory as ff
 import pandas as pd
 import numpy as np
-#import geopandas as gpd
-import shapely.geometry
+#import shapely.geometry
 from urllib.request import urlopen
 import json
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
     counties = json.load(response)
-
-# 1. add in route names (.lstrip to get rid of leading 0, then string concat with route)
-# 6. add more info
-# 7. add explanations at bottom of page
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
@@ -52,7 +47,7 @@ app.layout = dbc.Container([
                     # dropdown for states
                     html.Br(),
                     html.Label('State'),
-                    dcc.Dropdown(state, 'All', id='state_sel1', clearable=False),
+                    dcc.Dropdown(state, 'All', id='state_sel1', clearable=False, multi=True),
                     # dropdown for highway type
                     html.Br(),
                     html.Label('Highway'),
@@ -65,6 +60,17 @@ app.layout = dbc.Container([
                     html.Br(),
                     html.Label('Bridge Type'),
                     dcc.Dropdown(bridge_type, 'All', id='type_sel1', clearable=False),
+                    # slider for year built
+                    html.Br(),
+                    html.Label('Year Built'),
+                    dcc.RangeSlider(1697, 2023,
+                                    id='year_slider1',
+                                    marks=None,
+                                    value=[1697, 2023],
+                                    tooltip={"placement": "bottom", "always_visible": True},
+                                    dots=False,
+                                    step=1,
+                                    allowCross=False),
                     # slider for bridge length
                     html.Br(),
                     html.Label('Bridge length (m)'),
@@ -114,11 +120,11 @@ app.layout = dbc.Container([
                     # dropdown for states
                     html.Br(),
                     html.Label('State'),
-                    dcc.Dropdown(state, 'All', id='state_sel2', clearable=False),
+                    dcc.Dropdown(state, 'All', id='state_sel2', clearable=False, multi=True),
                     # dropdown for highway type
                     html.Br(),
                     html.Label('Highway'),
-                    dcc.Dropdown(route, 'All', id='highway_sel2', clearable=False),
+                    dcc.Dropdown(route, 'Interstate highway', id='highway_sel2', clearable=False),
                     # dropdown for highway number
                     html.Br(),
                     html.Label('Highway Number'),
@@ -127,7 +133,17 @@ app.layout = dbc.Container([
                     html.Br(),
                     html.Label('Bridge Type'),
                     dcc.Dropdown(bridge_type, 'All', id='type_sel2', clearable=False),
-
+                    # slider for year built
+                    html.Br(),
+                    html.Label('Year Built'),
+                    dcc.RangeSlider(1697, 2023,
+                                    id='year_slider2',
+                                    marks=None,
+                                    value=[1697, 2023],
+                                    tooltip={"placement": "bottom", "always_visible": True},
+                                    dots=False,
+                                    step=1,
+                                    allowCross=False),
                     # slider for bridge length
                     html.Br(),
                     html.Label('Bridge length (m)'),
@@ -179,12 +195,13 @@ app.layout = dbc.Container([
     Input('state_sel1', 'value'),
     Input('highway_sel1', 'value'),
     Input('type_sel1', 'value'),
+    Input('year_slider1', 'value'),
     Input('length_slider1', 'value'),
     Input('span_slider1', 'value'),
     Input('eval_slider1', 'value'),
     Input('hwy_num1', 'value')
 )
-def update_heatmap(state, route, b_type, length_range, span_num, eval, hwy_num):
+def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy_num):
     dff = df
 
     # df with state lat long centres
@@ -205,14 +222,25 @@ def update_heatmap(state, route, b_type, length_range, span_num, eval, hwy_num):
     low_eval = eval[0]
     high_eval = eval[1]
 
+    # update year range
+    low_year = year[0]
+    high_year = year[1]
+
     # filter dataframe
-    if state != 'All' and state != 'None':
-        dff = df[df['state_name']== state]
-        df_state_cen = df_state_cen[df_state_cen['state_name']==state]
+    if state == 'All':
+        pass
+    elif not state:
+        pass
+    elif ('All' in state):
+        pass
+    else:
+        dff = df[df['state_name'].isin(state)]
+        df_state_cen = df_state_cen[df_state_cen['state_name'].isin(state)]
     if route != 'All':
         dff = dff[dff['route_type'] == route]
     if b_type != 'All':
         dff = dff[dff['bridge_type'] == b_type]
+    dff = dff.query('year_built >= @low_year & year_built <= @high_year')
     dff = dff.query('bridge_length >= @low_len & bridge_length <= @high_len')
     dff = dff.query('num_span >= @low_span & num_span <= @high_span')
     dff = dff.query('eval_rating >= @low_eval & eval_rating <= @high_eval')
@@ -231,16 +259,22 @@ def update_heatmap(state, route, b_type, length_range, span_num, eval, hwy_num):
     df_sum['count'] = dff.loc[:,('fips', 'eval_rating')].groupby('fips', as_index=False).count().iloc[:,1].tolist()
     avg_total = df_sum['eval_rating'].mean()
 
+    # update figure zoom and location
     if state == 'All':
         lat = 38
         long = -95.7129
         centre = {"lat": lat, "lon": long}
         zoom = 3
-    else:
-        lat = df_state_cen.iloc[0]['latitude']
-        long = df_state_cen.iloc[0]['longitude']
+    elif not state:
+        lat = 38
+        long = -95.7129
         centre = {"lat": lat, "lon": long}
-        zoom = 5
+        zoom = 3
+    else:
+        lat = df_sum['latitude'].mean()
+        long = df_sum['longitude'].mean()
+        centre = {"lat": lat, "lon": long}
+        zoom = 4
 
     fig = px.choropleth_mapbox(df_sum, 
                                 geojson=counties, 
@@ -285,12 +319,13 @@ def update_heatmap(state, route, b_type, length_range, span_num, eval, hwy_num):
     Input('state_sel2', 'value'),
     Input('highway_sel2', 'value'),
     Input('type_sel2', 'value'),
+    Input('year_slider2', 'value'),
     Input('length_slider2', 'value'),
     Input('span_slider2', 'value'),
     Input('eval_slider2', 'value'),
     Input('hwy_num2', 'value')
 )
-def update_scattermap(state, route, b_type, length_range, span_num, eval, hwy_num):
+def update_scattermap(state, route, b_type, year, length_range, span_num, eval, hwy_num):
     # filter dataframe
     dff = df
 
@@ -312,14 +347,25 @@ def update_scattermap(state, route, b_type, length_range, span_num, eval, hwy_nu
     low_eval = eval[0]
     high_eval = eval[1]
 
+    # update year range
+    low_year = year[0]
+    high_year = year[1]
+
     # filter dataframe
-    if state != 'All':
-        dff = df[df['state_name']== state]
-        df_state_cen = df_state_cen[df_state_cen['state_name']==state]
+    if state == 'All':
+        pass
+    elif not state:
+        pass
+    elif ('All' in state):
+        pass
+    else:
+        dff = df[df['state_name'].isin(state)]
+        df_state_cen = df_state_cen[df_state_cen['state_name'].isin(state)]
     if route != 'All':
         dff = dff[dff['route_type'] == route]
     if b_type != 'All':
         dff = dff[dff['bridge_type'] == b_type]
+    dff = dff.query('year_built >= @low_year & year_built <= @high_year')
     dff = dff.query('bridge_length >= @low_len & bridge_length <= @high_len')
     dff = dff.query('num_span >= @low_span & num_span <= @high_span')
     dff = dff.query('eval_rating >= @low_eval & eval_rating <= @high_eval')
@@ -338,16 +384,22 @@ def update_scattermap(state, route, b_type, length_range, span_num, eval, hwy_nu
     df_sum['count'] = dff.loc[:,('fips', 'eval_rating')].groupby('fips', as_index=False).count().iloc[:,1].tolist()
     avg_total = df_sum['eval_rating'].mean()
 
+    # update figure zoom and location
     if state == 'All':
-        lat = 38 
+        lat = 38
+        long = -95.7129
+        centre = {"lat": lat, "lon": long}
+        zoom = 3
+    elif not state:
+        lat = 38
         long = -95.7129
         centre = {"lat": lat, "lon": long}
         zoom = 3
     else:
-        lat = df_state_cen.iloc[0]['latitude']
-        long = df_state_cen.iloc[0]['longitude']
+        lat = df_sum['latitude'].mean()
+        long = df_sum['longitude'].mean()
         centre = {"lat": lat, "lon": long}
-        zoom = 5
+        zoom = 4
 
     # scatter plot
     fig = px.scatter_mapbox(dff, 
@@ -364,6 +416,7 @@ def update_scattermap(state, route, b_type, length_range, span_num, eval, hwy_nu
                                         "bridge_type": True,
                                         'appr_material': True,
                                         'appr_type': True,
+                                        'year_built': True,
                                         'num_span': True,
                                         'num_appr': True,
                                         'max_span': True,
@@ -374,7 +427,7 @@ def update_scattermap(state, route, b_type, length_range, span_num, eval, hwy_nu
                             color_continuous_scale="rdbu", 
                             opacity=1,
                             zoom=zoom,
-                            height=600,
+                            height=700,
                             mapbox_style="open-street-map"
     )
 

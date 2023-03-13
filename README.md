@@ -14,15 +14,15 @@ A similar dashboard maintained by the Bureau of Transportation Statistics can be
 This dashboard contains two tabs, a heatmap showing the mean evaluation rating by county, and a scatterplot of bridges with bubble sizes indicating the size of the structure.
 
 #### Heatmap 
-![](../img/heatmap1.png)
+![](img/heatmap1.png)
 
 #### Scatterplot
-![](../img/scatterplot1.png)
+![](img/scatterplot1.png)
 
 #### User Input
 
 The user has 8 selection options, `state`, `type of highway`, `highway number` (filtered by the type), `bridge type`, `year built`, `bridge length (m)`, `number of spans`, and `Evaluation Rating`. The heatmap or scatterplot will then update based on user selection. A count of the number of bridges selected as well as the selected bridges mean evaluation rating will be displayed at the top of the panel.
-![](../img/userinput.png)
+![](img/userinput.png)
 
 ## Continuous Development 
 

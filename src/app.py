@@ -12,7 +12,7 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 server = app.server 
 
 # import bridge dataframe
-df = pd.read_csv('../data/processed/nbi_clean.csv')
+df = pd.read_csv('data/processed/nbi_clean.csv')
 # change county FIPS to string and pad string
 df['fips'] = df['fips'].map(str)
 df['fips'] = df['fips'].str.zfill(5)

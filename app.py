@@ -5,8 +5,10 @@ import pandas as pd
 import numpy as np
 from urllib.request import urlopen
 import json
-with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
-    counties = json.load(response)
+
+# load json county file
+j = open('data/processed/geojson-counties-fips.json')
+counties = json.load(j)
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 server = app.server 

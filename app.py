@@ -287,7 +287,7 @@ def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy
                                 center = centre,
                                 hover_name='fips',
                                 hover_data=['state_name', 'eval_rating', 'count'],
-                                height = 600
+                                height = 700
     )
 
     fig.update_layout(

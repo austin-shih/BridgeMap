@@ -21,7 +21,7 @@ opt = docopt(__doc__)
 def main(in_file, out_file):
     
     if os.path.exists(in_file) == False:
-        print('Results directory does not exist, exiting script')
+        print('Raw data directory does not exist, exiting script')
         exit()
     
     # Import raw data
@@ -71,14 +71,14 @@ def main(in_file, out_file):
                 #'NAVIGATION', # navigation control 38
                 #'NAV_VERT_C', # navigation vertical clearance 39
                 #'NAV_HORR_C', # navigation horizonatl clearance 40
-                'SERVICE_ON', # type of service 'on' bridge 42a
+                #'SERVICE_ON', # type of service 'on' bridge 42a
                 #'SERVICE_UN', # tyoe if service 'under' bridge 42b
                 'STRUCTUR_2', # structure kind 43a
                 'STRUCTUR_3', # structure type 43b
-                'APPR_KIND_', # approach kind 44a
-                'APPR_TYPE_', # approach type 44b
+                #'APPR_KIND_', # approach kind 44a
+                #'APPR_TYPE_', # approach type 44b
                 'MAIN_UNIT_', # number of spans in main unit 45
-                'APPR_SPANS', # number of approach spans 46
+                #'APPR_SPANS', # number of approach spans 46
                 #'HORR_CLR_M', # Total horizontal clearance (available max clearance) 47
                 'MAX_SPAN_L', # length of max span 48
                 'STRUCTUR_4', # structure length 49
@@ -148,13 +148,13 @@ def main(in_file, out_file):
                                         'FEATURES_D': 'feature_intersect',
                                         'OWNER_022':  'owner',
                                         'YEAR_BUILT': 'year_built',
-                                        'SERVICE_ON': 'service_type',
+                                        #'SERVICE_ON': 'service_type',
                                         'STRUCTUR_2': 'bridge_material',
                                         'STRUCTUR_3': 'bridge_type',
-                                        'APPR_KIND_': 'appr_material',
-                                        'APPR_TYPE_': 'appr_type',
+                                        #'APPR_KIND_': 'appr_material',
+                                        #'APPR_TYPE_': 'appr_type',
                                         'MAIN_UNIT_': 'num_span',
-                                        'APPR_SPANS': 'num_appr',
+                                        #'APPR_SPANS': 'num_appr',
                                         'MAX_SPAN_L': 'max_span',
                                         'STRUCTUR_4': 'bridge_length',
                                         'DECK_WIDTH': 'bridge_width',
@@ -338,8 +338,8 @@ def modify_clean_values(df):
         8: 'Other'
     })
 
-    # add bridge deck area
-    df['deck_area'] = df.STRUCTUR_4 * df.DECK_WIDTH
+    # # add bridge deck area
+    # df['deck_area'] = df.STRUCTUR_4 * df.DECK_WIDTH
 
     # # update route service level
     # df['SERVICE_LE'] = df['SERVICE_LE'].replace({
@@ -385,19 +385,19 @@ def modify_clean_values(df):
         76: 'Metropolitan'
     })
 
-    # update type of service 'on'
-    df['SERVICE_ON'] = df['SERVICE_ON'].replace({
-        1: 'Highway',
-        2: 'Railroad',
-        3: 'Pedestrian-bicycle',
-        4: 'Highway-railroad',
-        5: 'Highway-pedestrian',
-        6: 'Overpass structure at an interchange',
-        7: 'Third level (Interchange)',
-        8: 'Fourth level (Interchange)',
-        9: 'Building or plaza',
-        0: 'Other'
-    })
+    # # update type of service 'on'
+    # df['SERVICE_ON'] = df['SERVICE_ON'].replace({
+    #     1: 'Highway',
+    #     2: 'Railroad',
+    #     3: 'Pedestrian-bicycle',
+    #     4: 'Highway-railroad',
+    #     5: 'Highway-pedestrian',
+    #     6: 'Overpass structure at an interchange',
+    #     7: 'Third level (Interchange)',
+    #     8: 'Fourth level (Interchange)',
+    #     9: 'Building or plaza',
+    #     0: 'Other'
+    # })
 
     # update structure material
     df['STRUCTUR_2'] = df['STRUCTUR_2'].replace({
@@ -440,46 +440,46 @@ def modify_clean_values(df):
         0: 'Other'
     })
 
-    # update approach material
-    df['APPR_KIND_'] = df['APPR_KIND_'].replace({
-        1: 'Concrete',
-        2: 'Concrete continuous',
-        3: 'Steel',
-        4: 'Steel continuous',
-        5: 'Prestressed concrete (post-tension)',
-        6: 'Prestressed concrete continuous (post-tension)',
-        7: 'Wood or Timber',
-        8: 'Masonry',
-        9: 'Aluminum, Wrought Iron, or Cast Iron',
-        0: 'Other'
-    })
+    # # update approach material
+    # df['APPR_KIND_'] = df['APPR_KIND_'].replace({
+    #     1: 'Concrete',
+    #     2: 'Concrete continuous',
+    #     3: 'Steel',
+    #     4: 'Steel continuous',
+    #     5: 'Prestressed concrete (post-tension)',
+    #     6: 'Prestressed concrete continuous (post-tension)',
+    #     7: 'Wood or Timber',
+    #     8: 'Masonry',
+    #     9: 'Aluminum, Wrought Iron, or Cast Iron',
+    #     0: 'Other'
+    # })
 
-    # update approach type
-    df['APPR_TYPE_'] = df['APPR_TYPE_'].replace({
-        1: 'Slab',
-        2: 'Stringer/Multi-beam or Girder',
-        3: 'Girder and Floorbeam System',
-        4: 'Tee Beam',
-        5: 'Box Beam or Girders - Multiple',
-        6: 'Box Beam or Girders - Single or Spread',
-        7: 'Frame (except frame culverts)',
-        8: 'Orthotropic',
-        9: 'Truss - Deck',
-        10: 'Truss - Thru',
-        11: 'Arch - Deck',
-        12: 'Arch - Thru',
-        13: 'Suspension',
-        14: 'Stayed Girder',
-        15: 'Movable - Lift',
-        16: 'Movable - Bascule',
-        17: 'Movable - Swing',
-        18: 'Tunnel',
-        19: 'Culvert (includes frame culverts)',
-        20: 'Mixed types',
-        21: 'Segmental Box Girder',
-        22: 'Channel Beam',
-        0: 'Other'
-    })
+    # # update approach type
+    # df['APPR_TYPE_'] = df['APPR_TYPE_'].replace({
+    #     1: 'Slab',
+    #     2: 'Stringer/Multi-beam or Girder',
+    #     3: 'Girder and Floorbeam System',
+    #     4: 'Tee Beam',
+    #     5: 'Box Beam or Girders - Multiple',
+    #     6: 'Box Beam or Girders - Single or Spread',
+    #     7: 'Frame (except frame culverts)',
+    #     8: 'Orthotropic',
+    #     9: 'Truss - Deck',
+    #     10: 'Truss - Thru',
+    #     11: 'Arch - Deck',
+    #     12: 'Arch - Thru',
+    #     13: 'Suspension',
+    #     14: 'Stayed Girder',
+    #     15: 'Movable - Lift',
+    #     16: 'Movable - Bascule',
+    #     17: 'Movable - Swing',
+    #     18: 'Tunnel',
+    #     19: 'Culvert (includes frame culverts)',
+    #     20: 'Mixed types',
+    #     21: 'Segmental Box Girder',
+    #     22: 'Channel Beam',
+    #     0: 'Other'
+    # })
 
     # add verbose structural rating 
     df['STRUCTURAL'] = df['STRUCTURAL'].replace({'*': '-1'}) # change 'none' to number
@@ -503,49 +503,49 @@ def modify_clean_values(df):
     # change condition rating to verbose
     df['DECK_COND_'] = df['DECK_COND_'].replace({'N': '-1'}) # change 'none' to number
     df['DECK_COND_'] = pd.to_numeric(df['DECK_COND_']) # make ratings numeric
-    df['DECK_COND_'] = df['DECK_COND_'].replace({
-        -1: 'None',
-        0: 'Failed',
-        1: 'Imminent Failure',
-        2: 'Critical',
-        3: 'Serious',
-        4: 'Poor',
-        5: 'Fair',
-        6: 'Satisfactory',
-        7: 'Good',
-        8: 'Very Good',
-        9: 'Excellent'
-    })
+    # df['DECK_COND_'] = df['DECK_COND_'].replace({
+    #     -1: 'None',
+    #     0: 'Failed',
+    #     1: 'Imminent Failure',
+    #     2: 'Critical',
+    #     3: 'Serious',
+    #     4: 'Poor',
+    #     5: 'Fair',
+    #     6: 'Satisfactory',
+    #     7: 'Good',
+    #     8: 'Very Good',
+    #     9: 'Excellent'
+    # })
     df['SUPERSTRUC'] = df['SUPERSTRUC'].replace({'N': '-1'}) # change 'none' to number
     df['SUPERSTRUC'] = pd.to_numeric(df['SUPERSTRUC']) # make ratings numeric
-    df['SUPERSTRUC'] = df['SUPERSTRUC'].replace({
-        -1: 'None',
-        0: 'Failed',
-        1: 'Imminent Failure',
-        2: 'Critical',
-        3: 'Serious',
-        4: 'Poor',
-        5: 'Fair',
-        6: 'Satisfactory',
-        7: 'Good',
-        8: 'Very Good',
-        9: 'Excellent'
-    })
+    # df['SUPERSTRUC'] = df['SUPERSTRUC'].replace({
+    #     -1: 'None',
+    #     0: 'Failed',
+    #     1: 'Imminent Failure',
+    #     2: 'Critical',
+    #     3: 'Serious',
+    #     4: 'Poor',
+    #     5: 'Fair',
+    #     6: 'Satisfactory',
+    #     7: 'Good',
+    #     8: 'Very Good',
+    #     9: 'Excellent'
+    # })
     df['SUBSTRUCTU'] = df['SUBSTRUCTU'].replace({'N': '-1'}) # change 'none' to number
     df['SUBSTRUCTU'] = pd.to_numeric(df['SUBSTRUCTU']) # make ratings numeric
-    df['SUBSTRUCTU'] = df['SUBSTRUCTU'].replace({
-        -1: 'None',
-        0: 'Failed',
-        1: 'Imminent Failure',
-        2: 'Critical',
-        3: 'Serious',
-        4: 'Poor',
-        5: 'Fair',
-        6: 'Satisfactory',
-        7: 'Good',
-        8: 'Very Good',
-        9: 'Excellent'
-    })
+    # df['SUBSTRUCTU'] = df['SUBSTRUCTU'].replace({
+    #     -1: 'None',
+    #     0: 'Failed',
+    #     1: 'Imminent Failure',
+    #     2: 'Critical',
+    #     3: 'Serious',
+    #     4: 'Poor',
+    #     5: 'Fair',
+    #     6: 'Satisfactory',
+    #     7: 'Good',
+    #     8: 'Very Good',
+    #     9: 'Excellent'
+    # })
 
     return df
 

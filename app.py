@@ -247,9 +247,7 @@ def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy
         dff = dff[dff['route_num'] == hwy_num]
     
     # summary df
-    df_sum = dff.drop(dff[(dff['eval_rating'] == -1)].index)
-    df_sum = df_sum.loc[:, ('fips', 'state_abv', 'state_name', 'eval_rating', 'latitude', 'longitude')]
-    df_sum = df_sum.groupby(['fips', 'state_abv', 'state_name'], as_index=False).mean()
+    df_sum = dff.drop(dff[(dff['eval_rating'] == -1)].index).loc[:, ('fips', 'state_abv', 'state_name', 'eval_rating', 'latitude', 'longitude')].groupby(['fips', 'state_abv', 'state_name'], as_index=False).mean()
     df_sum['count'] = dff.loc[:,('fips', 'eval_rating')].groupby('fips', as_index=False).count().iloc[:,1].tolist()
     avg_total = df_sum['eval_rating'].mean()
 
@@ -365,9 +363,7 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
         dff = dff[dff['route_num'] == hwy_num]
 
     # summary df
-    df_sum = dff.drop(dff[(dff['eval_rating'] == -1)].index)
-    df_sum = df_sum.loc[:, ('fips', 'state_abv', 'state_name', 'eval_rating', 'latitude', 'longitude')]
-    df_sum = df_sum.groupby(['fips', 'state_abv', 'state_name'], as_index=False).mean()
+    df_sum = dff.drop(dff[(dff['eval_rating'] == -1)].index).loc[:, ('fips', 'state_abv', 'state_name', 'eval_rating', 'latitude', 'longitude')].groupby(['fips', 'state_abv', 'state_name'], as_index=False).mean()
     df_sum['count'] = dff.loc[:,('fips', 'eval_rating')].groupby('fips', as_index=False).count().iloc[:,1].tolist()
     avg_total = df_sum['eval_rating'].mean()
 
@@ -398,11 +394,8 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
                                         'substructure_condition': True, 
                                         "bridge_material": True, 
                                         "bridge_type": True,
-                                        'appr_material': True,
-                                        'appr_type': True,
                                         'year_built': True,
                                         'num_span': True,
-                                        'num_appr': True,
                                         'max_span': True,
                                         'bridge_length': True,
                                         'bridge_width': True},

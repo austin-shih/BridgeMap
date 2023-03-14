@@ -202,7 +202,10 @@ app.layout = dbc.Container([
     Input('hwy_num1', 'value')
 )
 def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy_num):
-    dff = df
+    df = pd.read_csv('data/processed/nbi_clean.csv')
+    # change county FIPS to string and pad string
+    df['fips'] = df['fips'].map(str)
+    df['fips'] = df['fips'].str.zfill(5)
 
     # update length range
     transformed_value_len = [transform_value(v) for v in length_range]
@@ -229,26 +232,26 @@ def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy
     elif ('All' in state):
         pass
     else:
-        dff = df[df['state_name'].isin(state)]
+        df = df[df['state_name'].isin(state)]
     if route != 'All':
-        dff = dff[dff['route_type'] == route]
+        df = df[df['route_type'] == route]
     if b_type != 'All':
-        dff = dff[dff['bridge_type'] == b_type]
-    dff = dff.query('year_built >= @low_year & year_built <= @high_year')
-    dff = dff.query('bridge_length >= @low_len & bridge_length <= @high_len')
-    dff = dff.query('num_span >= @low_span & num_span <= @high_span')
-    dff = dff.query('eval_rating >= @low_eval & eval_rating <= @high_eval')
+        df = df[df['bridge_type'] == b_type]
+    df = df.query('year_built >= @low_year & year_built <= @high_year')
+    df = df.query('bridge_length >= @low_len & bridge_length <= @high_len')
+    df = df.query('num_span >= @low_span & num_span <= @high_span')
+    df = df.query('eval_rating >= @low_eval & eval_rating <= @high_eval')
 
     # update route number dropdown
-    route_list = np.append(dff['route_num'].unique(), 'All')
+    route_list = np.append(df['route_num'].unique(), 'All')
     if hwy_num == 'None':
         pass
     if hwy_num != 'All':
-        dff = dff[dff['route_num'] == hwy_num]
+        df = df[df['route_num'] == hwy_num]
     
     # summary df
-    df_sum = dff.drop(dff[(dff['eval_rating'] == -1)].index).loc[:, ('fips', 'state_abv', 'state_name', 'eval_rating', 'latitude', 'longitude')].groupby(['fips', 'state_abv', 'state_name'], as_index=False).mean()
-    df_sum['count'] = dff.loc[:,('fips', 'eval_rating')].groupby('fips', as_index=False).count().iloc[:,1].tolist()
+    df_sum = df.drop(df[(df['eval_rating'] == -1)].index).loc[:, ('fips', 'state_abv', 'state_name', 'eval_rating', 'latitude', 'longitude')].groupby(['fips', 'state_abv', 'state_name'], as_index=False).mean()
+    df_sum['count'] = df.loc[:,('fips', 'eval_rating')].groupby('fips', as_index=False).count().iloc[:,1].tolist()
     avg_total = df_sum['eval_rating'].mean()
 
     # update figure zoom and location
@@ -298,7 +301,7 @@ def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy
         margin={"r":0,"t":60,"l":0,"b":0}
     )
 
-    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Mean evaluation rating: {:0.2f}'.format(avg_total), route_list
+    return fig, 'Number of Bridges Selected: {}'.format(df.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Mean evaluation rating: {:0.2f}'.format(avg_total), route_list
 
 
 @app.callback(
@@ -318,7 +321,10 @@ def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy
 )
 def update_scattermap(state, route, b_type, year, length_range, span_num, eval, hwy_num):
     # filter dataframe
-    dff = df
+    df = pd.read_csv('data/processed/nbi_clean.csv')
+    # change county FIPS to string and pad string
+    df['fips'] = df['fips'].map(str)
+    df['fips'] = df['fips'].str.zfill(5) 
 
     # update length range
     transformed_value_len = [transform_value(v) for v in length_range]
@@ -345,26 +351,26 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
     elif ('All' in state):
         pass
     else:
-        dff = df[df['state_name'].isin(state)]
+        df = df[df['state_name'].isin(state)]
     if route != 'All':
-        dff = dff[dff['route_type'] == route]
+        df = df[df['route_type'] == route]
     if b_type != 'All':
-        dff = dff[dff['bridge_type'] == b_type]
-    dff = dff.query('year_built >= @low_year & year_built <= @high_year')
-    dff = dff.query('bridge_length >= @low_len & bridge_length <= @high_len')
-    dff = dff.query('num_span >= @low_span & num_span <= @high_span')
-    dff = dff.query('eval_rating >= @low_eval & eval_rating <= @high_eval')
+        df = df[df['bridge_type'] == b_type]
+    df = df.query('year_built >= @low_year & year_built <= @high_year')
+    df = df.query('bridge_length >= @low_len & bridge_length <= @high_len')
+    df = df.query('num_span >= @low_span & num_span <= @high_span')
+    df = df.query('eval_rating >= @low_eval & eval_rating <= @high_eval')
 
     # update route number dropdown
-    route_list = np.append(dff['route_num'].unique(), 'All')
+    route_list = np.append(df['route_num'].unique(), 'All')
     if hwy_num == 'None':
         pass
     if hwy_num != 'All':
-        dff = dff[dff['route_num'] == hwy_num]
+        df = df[df['route_num'] == hwy_num]
 
     # summary df
-    df_sum = dff.drop(dff[(dff['eval_rating'] == -1)].index).loc[:, ('fips', 'state_abv', 'state_name', 'eval_rating', 'latitude', 'longitude')].groupby(['fips', 'state_abv', 'state_name'], as_index=False).mean()
-    df_sum['count'] = dff.loc[:,('fips', 'eval_rating')].groupby('fips', as_index=False).count().iloc[:,1].tolist()
+    df_sum = df.drop(df[(df['eval_rating'] == -1)].index).loc[:, ('fips', 'state_abv', 'state_name', 'eval_rating', 'latitude', 'longitude')].groupby(['fips', 'state_abv', 'state_name'], as_index=False).mean()
+    df_sum['count'] = df.loc[:,('fips', 'eval_rating')].groupby('fips', as_index=False).count().iloc[:,1].tolist()
     avg_total = df_sum['eval_rating'].mean()
 
     # update figure zoom and location
@@ -382,9 +388,9 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
         zoom = 4
 
     # scatter plot
-    fig = px.scatter_mapbox(dff, 
+    fig = px.scatter_mapbox(df, 
                             lat='latitude', lon='longitude', 
-                            size=dff['bridge_length']*50,
+                            size=df['bridge_length']*50,
                             size_max=30,
                             hover_name="feature_intersect", 
                             hover_data={'eval_rating':':.3f', 
@@ -425,7 +431,7 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
         margin={"r":0,"t":50,"l":0,"b":0}
     )
 
-    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Mean evaluation rating: {:0.2f}'.format(avg_total), route_list
+    return fig, 'Number of Bridges Selected: {}'.format(df.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Mean evaluation rating: {:0.2f}'.format(avg_total), route_list
 
 if __name__ == '__main__':
     app.run_server(debug=True)

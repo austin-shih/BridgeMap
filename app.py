@@ -204,10 +204,6 @@ app.layout = dbc.Container([
 def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy_num):
     dff = df
 
-    # df with state lat long centres
-    df_state_cen = dff.loc[:,('state_name', 'longitude', 'latitude')]
-    df_state_cen = df_state_cen.groupby(['state_name'], as_index=False).mean()
-
     # update length range
     transformed_value_len = [transform_value(v) for v in length_range]
     low_len = transformed_value_len[0]
@@ -234,7 +230,6 @@ def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy
         pass
     else:
         dff = df[df['state_name'].isin(state)]
-        df_state_cen = df_state_cen[df_state_cen['state_name'].isin(state)]
     if route != 'All':
         dff = dff[dff['route_type'] == route]
     if b_type != 'All':
@@ -327,10 +322,6 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
     # filter dataframe
     dff = df
 
-    # df with state lat long centres
-    df_state_cen = dff.loc[:,('state_name', 'longitude', 'latitude')]
-    df_state_cen = df_state_cen.groupby(['state_name'], as_index=False).mean()
-
     # update length range
     transformed_value_len = [transform_value(v) for v in length_range]
     low_len = transformed_value_len[0]
@@ -357,7 +348,6 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
         pass
     else:
         dff = df[df['state_name'].isin(state)]
-        df_state_cen = df_state_cen[df_state_cen['state_name'].isin(state)]
     if route != 'All':
         dff = dff[dff['route_type'] == route]
     if b_type != 'All':
@@ -385,17 +375,14 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
     if state == 'All':
         lat = 38
         long = -95.7129
-        centre = {"lat": lat, "lon": long}
         zoom = 3
     elif not state:
         lat = 38
         long = -95.7129
-        centre = {"lat": lat, "lon": long}
         zoom = 3
     else:
         lat = df_sum['latitude'].mean()
         long = df_sum['longitude'].mean()
-        centre = {"lat": lat, "lon": long}
         zoom = 4
 
     # scatter plot

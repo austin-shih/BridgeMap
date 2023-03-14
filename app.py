@@ -86,14 +86,14 @@ app.layout = dbc.Container([
                     # slider for number of spans
                     html.Br(),
                     html.Label('Number of Spans'),
-                    dcc.RangeSlider(0, 3,
+                    dcc.RangeSlider(0, 771,
                                     id='span_slider1',
-                                    marks={i: '{}'.format(transform_value(i)) for i in range(4)},
-                                    value=[0, 3],
+                                    marks=None,
+                                    value=[0, 771],
+                                    tooltip={"placement": "bottom", "always_visible": True},
                                     dots=False,
-                                    step=0.01,
+                                    step=1,
                                     allowCross=False),
-                    html.Div(id='num_span1', style={'font-size': 10}),
                     # slider for evaluation rating
                     html.Br(),
                     html.Label('Evaluation Rating'),
@@ -159,14 +159,14 @@ app.layout = dbc.Container([
                     # slider for number of spans
                     html.Br(),
                     html.Label('Number of Spans'),
-                    dcc.RangeSlider(0, 3,
+                    dcc.RangeSlider(0, 771,
                                     id='span_slider2',
-                                    marks={i: '{}'.format(transform_value(i)) for i in range(4)},
-                                    value=[0, 3],
+                                    marks=None,
+                                    value=[0, 771],
+                                    tooltip={"placement": "bottom", "always_visible": True},
                                     dots=False,
-                                    step=0.01,
+                                    step=1,
                                     allowCross=False),
-                    html.Div(id='num_span2', style={'font-size': 10}),
                     # slider for evaluation rating
                     html.Br(),
                     html.Label('Evaluation Rating'),
@@ -190,7 +190,6 @@ app.layout = dbc.Container([
     Output('us_map_heatmap', 'figure'),
     Output('bridge_count1', 'children'),
     Output('bridge_length1', 'children'),
-    Output('num_span1', 'children'),
     Output('eval_avg1', 'children'),
     Output('hwy_num1', 'options'),
     Input('state_sel1', 'value'),
@@ -215,9 +214,8 @@ def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy
     high_len = transformed_value_len[1]
 
     # update span range
-    transformed_value_span = [transform_value(v) for v in span_num]
-    low_span = transformed_value_span[0]
-    high_span = transformed_value_span[1]
+    low_span = span_num[0]
+    high_span = span_num[1]
 
     # update eval rating
     low_eval = eval[0]
@@ -307,14 +305,13 @@ def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy
         margin={"r":0,"t":60,"l":0,"b":0}
     )
 
-    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Selected span range: [{:0.2f}, {:0.2f}]'.format(low_span, high_span), 'Mean evaluation rating: {:0.2f}'.format(avg_total), route_list
+    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Mean evaluation rating: {:0.2f}'.format(avg_total), route_list
 
 
 @app.callback(
     Output('us_map_scatter', 'figure'),
     Output('bridge_count2', 'children'),
     Output('bridge_length2', 'children'),
-    Output('num_span2', 'children'),
     Output('eval_avg2', 'children'),
     Output('hwy_num2', 'options'),
     Input('state_sel2', 'value'),
@@ -340,9 +337,8 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
     high_len = transformed_value_len[1]
 
     # update span range
-    transformed_value_span = [transform_value(v) for v in span_num]
-    low_span = transformed_value_span[0]
-    high_span = transformed_value_span[1]
+    low_span = span_num[0]
+    high_span = span_num[1]
 
     # update eval rating
     low_eval = eval[0]
@@ -449,7 +445,7 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
         margin={"r":0,"t":50,"l":0,"b":0}
     )
 
-    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Selected span range: [{:0.2f}, {:0.2f}]'.format(low_span, high_span), 'Mean evaluation rating: {:0.2f}'.format(avg_total), route_list
+    return fig, 'Number of Bridges Selected: {}'.format(dff.shape[0]), 'Selected length range: [{:0.2f}, {:0.2f}]'.format(low_len, high_len), 'Mean evaluation rating: {:0.2f}'.format(avg_total), route_list
 
 if __name__ == '__main__':
     app.run_server(debug=True)

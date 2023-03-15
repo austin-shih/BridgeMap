@@ -21,7 +21,7 @@ server = app.server
 
 # import bridge dataframe
 df = pd.read_csv('https://raw.githubusercontent.com/austin-shih/bridgemap_data/main/data/processed/nbi_clean.csv')
-#dff = pd.read_csv('data/processed/nbi_clean.csv')
+# df = pd.read_csv('data/processed/nbi_clean.csv')
 # change county FIPS to string and pad string
 df['fips'] = df['fips'].map(str)
 df['fips'] = df['fips'].str.zfill(5)
@@ -209,7 +209,7 @@ app.layout = dbc.Container([
 )
 def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy_num):
     dff = df
-    #dff = pd.read_csv('data/processed/nbi_clean.csv')
+
     # change county FIPS to string and pad string
     dff['fips'] = dff['fips'].map(str)
     dff['fips'] = dff['fips'].str.zfill(5)
@@ -329,7 +329,7 @@ def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy
 def update_scattermap(state, route, b_type, year, length_range, span_num, eval, hwy_num):
     dff = df
     # filter dataframe
-    #dff = pd.read_csv('data/processed/nbi_clean.csv')
+
     # change county FIPS to string and pad string
     dff['fips'] = dff['fips'].map(str)
     dff['fips'] = dff['fips'].str.zfill(5) 

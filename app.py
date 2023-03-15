@@ -3,13 +3,18 @@ import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
 import numpy as np
+from urllib.request import urlopen
+import json
 
-# load json county file
-j = pd.read_json('data/processed/geojson-counties-fips.json')
-counties = {
-    'type': 'FeatureCollection',
-    'features': j['features'].to_list()
-}
+with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
+    counties = json.load(response)
+
+# # load json county file
+# j = pd.read_json('data/processed/geojson-counties-fips.json')
+# counties = {
+#     'type': 'FeatureCollection',
+#     'features': j['features'].to_list()
+# }
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 server = app.server 

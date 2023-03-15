@@ -20,7 +20,12 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 server = app.server 
 
 # import bridge dataframe
-df = pd.read_csv('https://raw.githubusercontent.com/austin-shih/bridgemap_data/main/data/processed/nbi_clean.csv')
+df = pd.read_csv('https://raw.githubusercontent.com/austin-shih/bridgemap_data/main/data/processed/nbi_clean.csv', 
+                        dtype = {"eval_rating_v":'category', "route_type":"category", 'eval_rating': np.int8, 'deck_condition': np.int8,
+                                   'superstructure_condition': np.int8, 'substructure_condition': np.int8, 'fips': np.int32,
+                                   'year_built': np.int16, 'num_span': np.int16, 'max_span': np.float16, 'bridge_length':np.float32,
+                                   'bridge_width': np.float16})
+
 # df = pd.read_csv('data/processed/nbi_clean.csv')
 # change county FIPS to string and pad string
 df['fips'] = df['fips'].map(str)
@@ -210,10 +215,6 @@ app.layout = dbc.Container([
 def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy_num):
     dff = df
 
-    # change county FIPS to string and pad string
-    dff['fips'] = dff['fips'].map(str)
-    dff['fips'] = dff['fips'].str.zfill(5)
-
     # update length range
     transformed_value_len = [transform_value(v) for v in length_range]
     low_len = transformed_value_len[0]
@@ -330,10 +331,6 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
     dff = df
     # filter dataframe
 
-    # change county FIPS to string and pad string
-    dff['fips'] = dff['fips'].map(str)
-    dff['fips'] = dff['fips'].str.zfill(5) 
-
     # update length range
     transformed_value_len = [transform_value(v) for v in length_range]
     low_len = transformed_value_len[0]
@@ -401,7 +398,7 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
                             size=dff['bridge_length']*50,
                             size_max=30,
                             hover_name="feature_intersect", 
-                            hover_data={'eval_rating':':.3f', 
+                            hover_data={'eval_rating': True, 
                                         "eval_rating_v": True,
                                         'deck_condition': True,
                                         'superstructure_condition':True,
@@ -409,10 +406,10 @@ def update_scattermap(state, route, b_type, year, length_range, span_num, eval, 
                                         "bridge_material": True, 
                                         "bridge_type": True,
                                         'year_built': True,
-                                        'num_span': True,
-                                        'max_span': True,
-                                        'bridge_length': True,
-                                        'bridge_width': True},
+                                        'num_span':True,
+                                        'max_span':':.3f',
+                                        'bridge_length': ':.3f',
+                                        'bridge_width': ':.3f'},
                             color='eval_rating',
                             range_color = [0, 9],
                             color_continuous_scale="rdbu", 

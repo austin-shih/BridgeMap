@@ -44,11 +44,116 @@ def transform_value(value):
         val_tran = 10**value
     return val_tran
 
+# about evaulation tables
+table_header1 = [
+html.Thead(html.Tr([html.Th("Code"), html.Th("Verbose"), html.Th("Description")]))
+]
+row11 = html.Tr([html.Td("9"), html.Td("Excellent"), html.Td("Excellent Condition")])
+row12 = html.Tr([html.Td("8"), html.Td("Very Good"), html.Td("No problems noted")])
+row13 = html.Tr([html.Td("7"), html.Td("Good"), html.Td("Some minor problems")])
+row14 = html.Tr([html.Td("6"), html.Td("Satisfactory"), html.Td("Structural elements show some minor deterioration.")])
+row15 = html.Tr([html.Td("5"), html.Td("Fair"), html.Td("All primary structural elements are sound but may have minor section loss, cracking, spalling or scour.")])
+row16 = html.Tr([html.Td("4"), html.Td("Poor"), html.Td("Advanced section loss, deterioration, spalling or scour.")])
+row17 = html.Tr([html.Td("3"), html.Td("Serious"), html.Td("Loss of section, deterioration, spalling or scour have seriously affected primary structural components. Local failures are possible. Fatigue cracks in steel or shear cracks in concrete may be present.")])
+row18 = html.Tr([html.Td("2"), html.Td("Critical"), html.Td("Advanced deterioration of primary structural elements. Fatigue cracks in steel or shear cracks in concrete may be present or scour may have removed substructure support. Unless closely monitored it may be necessary to close the bridge until corrective action is taken.")])
+row19 = html.Tr([html.Td("1"), html.Td("'IMMINENT' Failure"), html.Td("Major deterioration or section loss present in critical structural components or obvious vertical or horizontal movement affecting structure stability. Bridge is closed to traffic but corrective action may put back in light service.")])
+row10 = html.Tr([html.Td("0"), html.Td("Failed"), html.Td("Out of service - beyond corrective action.")])
+table_body1 = [html.Tbody([row11, row12, row13, row14, row15, row16, row17, row18, row19, row10])]
+
+table_header2 = [
+html.Thead(html.Tr([html.Th("Code"), html.Th("Description")]))
+]
+row21 = html.Tr([html.Td("9"), html.Td("Superior to present desirable criteria")])
+row22 = html.Tr([html.Td("8"), html.Td("Equal to present desirable criteria")])
+row23 = html.Tr([html.Td("7"), html.Td("Better than present minimum criteria")])
+row24 = html.Tr([html.Td("6"), html.Td("Equal to present minimum criteria")])
+row25 = html.Tr([html.Td("5"), html.Td("Somewhat better than minimum adequacy to tolerated being left in place as is")])
+row26 = html.Tr([html.Td("4"), html.Td("Meets minimum tolerable limits to be left in place as is")])
+row27 = html.Tr([html.Td("3"), html.Td("Basically intolerable requiring high priority of corrective action")])
+row28 = html.Tr([html.Td("2"), html.Td("Basically intolerable requiring high priority of replacement")])
+row29 = html.Tr([html.Td("1"), html.Td("This value of rating code not used")])
+row20 = html.Tr([html.Td("0"), html.Td("Bridge closed")])
+table_body2 = [html.Tbody([row21, row22, row23, row24, row25, row26, row27, row28, row29, row20])]
+
 app.layout = dbc.Container([
     html.H1("US Highway Bridge Map", style={'textAlign': 'start'}),
     html.P("Dashboard to Visualize US Interstate, Numbered, and State highway bridges from the National Bridge Inventory Database", 
            style={'textAlign': 'start'}),
+
     dcc.Tabs([
+        dcc.Tab(label='Scatterplot', children=[
+            dbc.Row([
+                dbc.Col([
+                    # count of bridges from filter
+                    html.Br(),
+                    html.Div(id='bridge_count2'),
+                    html.Div(id='eval_avg2'),
+                    # dropdown for states
+                    html.Br(),
+                    html.Label('State'),
+                    dcc.Dropdown(state, 'All', id='state_sel2', clearable=False, multi=True),
+                    # dropdown for highway type
+                    html.Br(),
+                    html.Label('Highway'),
+                    dcc.Dropdown(route, 'Interstate highway', id='highway_sel2', clearable=False),
+                    # dropdown for highway number
+                    html.Br(),
+                    html.Label('Highway Number'),
+                    dcc.Dropdown(route_num, 'All', id='hwy_num2'),
+                    # dropdown for bridge type
+                    html.Br(),
+                    html.Label('Bridge Type'),
+                    dcc.Dropdown(bridge_type, 'All', id='type_sel2', clearable=False),
+                    # slider for year built
+                    html.Br(),
+                    html.Label('Year Built'),
+                    dcc.RangeSlider(1697, 2023,
+                                    id='year_slider2',
+                                    marks=None,
+                                    value=[1697, 2023],
+                                    tooltip={"placement": "bottom", "always_visible": True},
+                                    dots=False,
+                                    step=1,
+                                    allowCross=False),
+                    # slider for bridge length
+                    html.Br(),
+                    html.Label('Bridge length (m)'),
+                    dcc.RangeSlider(0, 5,
+                                    id='length_slider2',
+                                    marks={i: '{}'.format(transform_value(i)) for i in range(6)},
+                                    value=[0, 5],
+                                    dots=False,
+                                    step=0.01,
+                                    allowCross=False),
+                    html.Div(id='bridge_length2',  style={'font-size': 10}),
+                    # slider for number of spans
+                    html.Br(),
+                    html.Label('Number of Spans'),
+                    dcc.RangeSlider(0, 771,
+                                    id='span_slider2',
+                                    marks=None,
+                                    value=[0, 771],
+                                    tooltip={"placement": "bottom", "always_visible": True},
+                                    dots=False,
+                                    step=1,
+                                    allowCross=False),
+                    # slider for evaluation rating
+                    html.Br(),
+                    html.Label('Evaluation Rating'),
+                    dcc.RangeSlider(-1, 9, 1, value=[-1, 9], id='eval_slider2', allowCross=False),
+                    html.Div('* -1 for bridges without rating', style={'font-size': 10})
+
+                ], width=3, style={"height": "100%"}),   
+                dbc.Col([
+                    html.Br(),
+                    html.H4("Highway Bridges Scatterplot (bubble size by length)", style={'textAlign': 'start'}),
+                    dcc.Graph(id='us_map_scatter', figure={}, style={'height':'70vh'}),
+                    html.Div('Data accessed January 13, 2023. Latest version can be found below:', style={'font-size': 12}),
+                    dcc.Link(html.A('USDOT BTS'), id='data_link2',  href="https://geodata.bts.gov/datasets/national-bridge-inventory/about", style={'font-size': 12})
+                ], width=9, style={"height": "100%"})  
+            ], className="h-75")
+        ]),
+
         dcc.Tab(label='Heatmap', children=[
             dbc.Row([
                 dbc.Col([
@@ -122,77 +227,33 @@ app.layout = dbc.Container([
             ], className="h-75")
         ]),
 
-        dcc.Tab(label='Scatterplot', children=[
-            dbc.Row([
-                dbc.Col([
-                    # count of bridges from filter
-                    html.Br(),
-                    html.Div(id='bridge_count2'),
-                    html.Div(id='eval_avg2'),
-                    # dropdown for states
-                    html.Br(),
-                    html.Label('State'),
-                    dcc.Dropdown(state, 'All', id='state_sel2', clearable=False, multi=True),
-                    # dropdown for highway type
-                    html.Br(),
-                    html.Label('Highway'),
-                    dcc.Dropdown(route, 'Interstate highway', id='highway_sel2', clearable=False),
-                    # dropdown for highway number
-                    html.Br(),
-                    html.Label('Highway Number'),
-                    dcc.Dropdown(route_num, 'All', id='hwy_num2'),
-                    # dropdown for bridge type
-                    html.Br(),
-                    html.Label('Bridge Type'),
-                    dcc.Dropdown(bridge_type, 'All', id='type_sel2', clearable=False),
-                    # slider for year built
-                    html.Br(),
-                    html.Label('Year Built'),
-                    dcc.RangeSlider(1697, 2023,
-                                    id='year_slider2',
-                                    marks=None,
-                                    value=[1697, 2023],
-                                    tooltip={"placement": "bottom", "always_visible": True},
-                                    dots=False,
-                                    step=1,
-                                    allowCross=False),
-                    # slider for bridge length
-                    html.Br(),
-                    html.Label('Bridge length (m)'),
-                    dcc.RangeSlider(0, 5,
-                                    id='length_slider2',
-                                    marks={i: '{}'.format(transform_value(i)) for i in range(6)},
-                                    value=[0, 5],
-                                    dots=False,
-                                    step=0.01,
-                                    allowCross=False),
-                    html.Div(id='bridge_length2',  style={'font-size': 10}),
-                    # slider for number of spans
-                    html.Br(),
-                    html.Label('Number of Spans'),
-                    dcc.RangeSlider(0, 771,
-                                    id='span_slider2',
-                                    marks=None,
-                                    value=[0, 771],
-                                    tooltip={"placement": "bottom", "always_visible": True},
-                                    dots=False,
-                                    step=1,
-                                    allowCross=False),
-                    # slider for evaluation rating
-                    html.Br(),
-                    html.Label('Evaluation Rating'),
-                    dcc.RangeSlider(-1, 9, 1, value=[-1, 9], id='eval_slider2', allowCross=False),
-                    html.Div('* -1 for bridges without rating', style={'font-size': 10})
-
-                ], width=3, style={"height": "100%"}),   
-                dbc.Col([
-                    html.Br(),
-                    html.H4("Highway Bridges Scatterplot (bubble size by length)", style={'textAlign': 'start'}),
-                    dcc.Graph(id='us_map_scatter', figure={}, style={'height':'70vh'}),
-                    html.Div('Data accessed January 13, 2023. Latest version can be found below:', style={'font-size': 12}),
-                    dcc.Link(html.A('USDOT BTS'), id='data_link2',  href="https://geodata.bts.gov/datasets/national-bridge-inventory/about", style={'font-size': 12})
-                ], width=9, style={"height": "100%"})  
-            ], className="h-75")
+        dcc.Tab(label='About', children=[
+            html.Br(),
+            html.H2("About", style={'textAlign': 'start'}),
+            html.P([
+                'This dashboard aims to create a tool to allow users to visualize ' 
+                'US Interstate, US Numbered, and State highway bridges as either a heatmap showing the '
+                'evaluation statistics by county or scatterplot of individual bridges from the "National Bridge Inventory" dataset, accessed on January 13, 2023. '
+                'This dataset is maintained by the US Federal Highway Administration and the latest version can '
+                'be found ', html.A('here', href='https://geodata.bts.gov/datasets/national-bridge-inventory/about'), '. '
+                'Detailed descriptions of all the features included in this dataset can be found '
+                "in the ", html.A("Recording and Coding Guide for the Structural Inventory and Appraisal of the Nation's Bridge", href='https://www.fhwa.dot.gov/bridge/nbi.cfm'), '.'
+            ], style={'textAlign': 'start'}),
+            html.Br(),
+            html.H2("Evaluation Rating", style={'textAlign': 'start'}),
+            html.P([
+                "The evaulation ratings used in the dashboard comes from Items 58 through 60 ",
+                "and Item 67 for overall 'Structural Evaluation' as outline in 'Recording and Coding Guide for the Structural Inventory and Appraisal of the Nation's Bridge'. ",
+                "Structural components 'Deck', 'Superstructure' and 'Substructure' are evaluated ",
+                "on a 10 point scale as outlined below:"
+            ]),
+            dbc.Table(dbc.Table(table_header1 + table_body1, bordered=True)),
+            html.Br(),
+            html.P([
+            "The evaulation rating used for the overall 'Structural Evaluation' (Item 67) can be described using the below table:"
+            ]),
+            dbc.Table(dbc.Table(table_header2 + table_body2, bordered=True))
+            
         ])
     ])
 ])
@@ -300,10 +361,10 @@ def update_heatmap(state, route, b_type, year, length_range, span_num, eval, hwy
                                 yanchor="top",y=1, 
                                 ticks="outside", 
                                 tickvals=[0,1,2,3,4,5,6,7,8,9],
-                                ticktext=['0-Failed', '1-"Imminent" Failure', 
-                                            '2-Critical', '3-Serious',
-                                            '4-Poor', '5-Fair', '6-Satisfactory',
-                                            '7-Good', '8-Very Good', '9-Excellent'],
+                                ticktext=['0-Closed', '1-N/A', 
+                                            '2-Intolerable, replacement', '3-Intolerable, corrective',
+                                            '4-Meets tolerable crit.', '5-Above tolerable crit.', '6-Equal min. crit.',
+                                            '7-Above min. crit.', '8-Equal desirable crit.', '9-Superior desirable crit.'],
                                 dtick=10
                                 ),
         margin={"r":0,"t":60,"l":0,"b":0}

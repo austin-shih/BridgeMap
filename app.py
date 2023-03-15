@@ -63,7 +63,7 @@ app.layout = dbc.Container([
                     # dropdown for highway type
                     html.Br(),
                     html.Label('Highway'),
-                    dcc.Dropdown(route, 'All', id='highway_sel1', clearable=False),
+                    dcc.Dropdown(route, 'State highway', id='highway_sel1', clearable=False),
                     # dropdown for highway number
                     html.Br(),
                     html.Label('Highway Number'),
